@@ -1,0 +1,62 @@
+#include <SoftwareSerial.h>
+#include "LedControl.h"
+
+int pin = A0; //압력센서 아날로그 핀넘버
+int buzzer = 8; //부저 핀넘버
+int sw = 4; //스위치 핀넘버
+long temp_time=0;
+int buzzer_state = 0;
+SoftwareSerial bluetooth(5,6);    //3가 rxd 2은 txd
+
+void setup() {
+  pinMode(pin,INPUT);
+  pinMode(buzzer,OUTPUT);
+  pinMode(sw,INPUT);
+  digitalWrite(buzzer,LOW);
+  bluetooth.begin(9600); 
+
+
+void loop() {
+  int fsr;
+  fsr = analogRead(pin);
+   //Serial.println(fsr);
+  if(fsr > 200 || Z_size >0){ //압력이 200을 넘을 경우 부저가 울림
+    if(buzzer_state==0){
+      digitalWrite(buzzer,HIGH);
+      buzzer_state=1;
+    }
+    temp_time=millis();
+  }
+  if(buzzer_state == 1){  //부저가 on일 경우 5초 이내로 스위치를 끄지 않을 경우
+    if((millis() - temp_time)>5000){
+      digitalWrite(buzzer,LOW);
+      bluetooth.write("c\n");
+      buzzer_state=0;
+      
+  for(int ab=0;ab<7;ab++){
+      for (int row=0; row<8; row++)
+  {
+    for (int col=0; col<8; col++)
+    {
+      lc.setLed(0,col,row,true);      // LED가 켜지면서 밑에서부터 올라갑니다.
+    }
+    }
+delay(500);
+  for (int row=0; row<8; row++)
+  {
+    for (int col=0; col<8; col++)
+    {
+      lc.setLed(0,col,row,false);       // LED가 꺼지면서 밑에서부터 올라갑니다
+    }
+  }
+  delay(500);
+  }
+    }
+    if(digitalRead(sw) == HIGH){
+      digitalWrite(buzzer,LOW);
+      buzzer_state=0;
+    }
+  }
+
+    
+}
